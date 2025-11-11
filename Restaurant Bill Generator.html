@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Bill Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f3f4f6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .editor-section {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #1f2937;
+        }
+
+        h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #374151;
+        }
+
+        .format-selector {
+            margin-bottom: 25px;
+            padding: 15px;
+            background: #f0f9ff;
+            border-radius: 6px;
+            border: 2px solid #3b82f6;
+        }
+
+        .format-selector label {
+            display: inline-flex;
+            align-items: center;
+            margin-right: 30px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .format-selector input[type="radio"] {
+            margin-right: 8px;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .items-list {
+            margin-bottom: 20px;
+        }
+
+        .item-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+            background: #f9fafb;
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        .item-row input {
+            margin-bottom: 0;
+        }
+
+        .item-row .qty-input {
+            width: 80px;
+        }
+
+        .item-row .name-input {
+            flex: 1;
+        }
+
+        .item-row .price-input {
+            width: 120px;
+        }
+
+        .add-item-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+            background: #eff6ff;
+            padding: 10px;
+            border-radius: 4px;
+            border: 2px dashed #3b82f6;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .btn-delete {
+            background: #ef4444;
+            color: white;
+            padding: 8px 12px;
+        }
+
+        .btn-delete:hover {
+            background: #dc2626;
+        }
+
+        .btn-add {
+            background: #3b82f6;
+            color: white;
+            padding: 8px 12px;
+        }
+
+        .btn-add:hover {
+            background: #2563eb;
+        }
+
+        .btn-save {
+            width: 100%;
+            background: #3b82f6;
+            color: white;
+            padding: 15px;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn-save:hover {
+            background: #2563eb;
+        }
+
+        .btn-print {
+            width: 100%;
+            background: #10b981;
+            color: white;
+            padding: 15px;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-print:hover {
+            background: #059669;
+        }
+
+        /* Receipt Preview */
+        .receipt-preview {
+            background: white;
+            max-width: 400px;
+            margin: 0 auto;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .receipt-content {
+            padding: 30px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        /* Format 1 - Detailed Style */
+        .format1 .receipt-header {
+            text-align: center;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed #666;
+        }
+
+        .format1 .name {
+            font-weight: 900;
+            font-size: 18px;
+            margin-bottom: 3px;
+        }
+
+        .format1 .subtitle {
+            margin-bottom: 5px;
+        }
+
+        .format1 .receipt-info {
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed #666;
+        }
+
+        .format1 .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2px;
+        }
+
+        .format1 .items-table {
+            margin-bottom: 10px;
+        }
+
+        .format1 .table-header {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1.5fr;
+            gap: 5px;
+            padding: 5px 0;
+            border-bottom: 1px solid #000;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .format1 .table-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1.5fr;
+            gap: 5px;
+            margin-bottom: 5px;
+            padding: 3px 0;
+        }
+
+        .format1 .table-row .text-right {
+            text-align: right;
+        }
+
+        .format1 .table-header .text-right {
+            text-align: right;
+        }
+
+        .format1 .totals {
+            border-top: 1px dashed #666;
+            padding-top: 10px;
+            text-align: right;
+        }
+
+        .format1 .total-line {
+            margin-bottom: 3px;
+        }
+
+        .format1 .grand-total {
+            font-weight: bold;
+            margin-top: 5px;
+            padding-top: 5px;
+            border-top: 1px solid #000;
+        }
+
+        .format1 .footer {
+            text-align: center;
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px dashed #666;
+        }
+
+        /* Format 2 - Simple Style */
+        .format2 .receipt-header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .format2 .name {
+            font-weight: 900;
+            font-size: 18px;
+            text-decoration: underline;
+            margin-bottom: 5px;
+        }
+
+        .format2 .subtitle {
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+
+        .format2 .receipt-info {
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed #666;
+        }
+
+        .format2 .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2px;
+        }
+
+        .format2 .items-table {
+            margin-bottom: 10px;
+            padding-top: 8px;
+        }
+
+        .format2 .table-header {
+            display: grid;
+            grid-template-columns: 2.5fr 1fr 1.5fr 1.5fr;
+            gap: 8px;
+            padding: 5px 0;
+            border-bottom: 1px solid #000;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .format2 .table-row {
+            display: grid;
+            grid-template-columns: 2.5fr 1fr 1.5fr 1.5fr;
+            gap: 8px;
+            margin-bottom: 3px;
+            padding: 3px 0;
+        }
+
+        .format2 .table-row .text-right,
+        .format2 .table-header .text-right {
+            text-align: right;
+        }
+
+        .format2 .totals {
+            text-align: right;
+            padding-top: 8px;
+            border-top: 1px solid #000;
+        }
+
+        .format2 .grand-total {
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .format2 .footer {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        /* Print Styles */
+        @media print {
+            body {
+                background: white;
+            }
+
+            .editor-section {
+                display: none !important;
+            }
+
+            .container {
+                padding: 0;
+            }
+
+            .receipt-preview {
+                box-shadow: none;
+                border-radius: 0;
+                max-width: 80mm;
+                margin: 0;
+            }
+
+            .receipt-content {
+                padding: 5px;
+            }
+
+            @page {
+                size: 80mm auto;
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Editor Section -->
+        <div class="editor-section">
+            <h1>Restaurant Bill Generator</h1>
+            
+            <!-- Format Selector -->
+            <div class="format-selector">
+                <h2 style="margin-bottom: 10px;">Choose Bill Format:</h2>
+                <label>
+                    <input type="radio" name="format" value="format1" checked>
+                    Format 1 - Detailed (Hotel Royal Palace Style)
+                </label>
+                <label>
+                    <input type="radio" name="format" value="format2">
+                    Format 2 - Simple (Adishwar Dhaba Style)
+                </label>
+            </div>
+            
+            <!-- Restaurant Info -->
+            <div class="form-group">
+                <h2>Restaurant Information</h2>
+                <div class="form-row">
+                    <input type="text" id="restaurantName" placeholder="Restaurant Name" value="HOTEL ROYAL PALACE & LODGE">
+                    <input type="text" id="subtitle" placeholder="Subtitle (VEG-NONVEG)" value="VEG-NONVEG">
+                    <input type="text" id="address1" placeholder="Address Line 1" value="Pune-Nagar Highway, Shikrapur">
+                    <input type="text" id="address2" placeholder="Address Line 2 (Optional)" value="">
+                    <input type="text" id="phone" placeholder="Phone Number" value="+91 20 2567 8900">
+                    <input type="text" id="gstin" placeholder="GSTIN (Optional)" value="">
+                </div>
+            </div>
+
+            <!-- Bill Details -->
+            <div class="form-group">
+                <h2>Bill Details</h2>
+                <div class="form-row">
+                    <input type="text" id="billNo" placeholder="Bill No" value="1026">
+                    <input type="text" id="tableNo" placeholder="Table No" value="D-9">
+                    <input type="date" id="billDate" placeholder="Date">
+                    <input type="time" id="billTime" placeholder="Time">
+                </div>
+            </div>
+
+            <!-- Items -->
+            <div class="form-group">
+                <h2>Items</h2>
+                <div class="items-list" id="itemsList"></div>
+                
+                <!-- Add New Item -->
+                <div class="add-item-row">
+                    <input type="number" id="newQty" class="qty-input" placeholder="Qty" value="1" min="1">
+                    <input type="text" id="newName" class="name-input" placeholder="Item Name">
+                    <input type="number" id="newPrice" class="price-input" placeholder="Rate (per item)" step="0.01">
+                    <button class="btn btn-add" id="addButton">+ Add</button>
+                </div>
+            </div>
+
+            <button class="btn btn-save" id="saveButton">
+                <span>💾</span> Save & Update Preview
+            </button>
+            <button class="btn btn-print" id="printButton">
+                <span>🖨️</span> Print Bill
+            </button>
+        </div>
+
+        <!-- Receipt Preview -->
+        <div class="receipt-preview">
+            <div class="receipt-content" id="receiptContent"></div>
+        </div>
+    </div>
+
+    <script>
+        let items = [
+            { qty: 1, name: 'FRESH SALAD', rate: 120 },
+            { qty: 2, name: 'VEG INDIAN DHWAB', rate: 280 },
+            { qty: 1, name: 'PANIR TIKKA', rate: 220 },
+            { qty: 6, name: 'JOWAR BHAKARI', rate: 20 },
+            { qty: 11, name: 'TANDUR ROTI', rate: 30 },
+            { qty: 1, name: 'JIRA RISE', rate: 140 }
+        ];
+
+        // Set current date and time on load
+        function setCurrentDateTime() {
+            const now = new Date();
+            const dateStr = now.toISOString().split('T')[0];
+            const timeStr = now.toTimeString().split(' ')[0].substring(0, 5);
+            document.getElementById('billDate').value = dateStr;
+            document.getElementById('billTime').value = timeStr;
+        }
+
+        function renderItems() {
+            const itemsList = document.getElementById('itemsList');
+            itemsList.innerHTML = '';
+            
+            items.forEach((item, index) => {
+                const itemRow = document.createElement('div');
+                itemRow.className = 'item-row';
+                
+                const qtyInput = document.createElement('input');
+                qtyInput.type = 'number';
+                qtyInput.className = 'qty-input';
+                qtyInput.value = item.qty;
+                qtyInput.min = '1';
+                qtyInput.addEventListener('change', function() {
+                    items[index].qty = parseInt(this.value) || 1;
+                });
+                
+                const nameInput = document.createElement('input');
+                nameInput.type = 'text';
+                nameInput.className = 'name-input';
+                nameInput.value = item.name;
+                nameInput.addEventListener('change', function() {
+                    items[index].name = this.value;
+                });
+                
+                const rateInput = document.createElement('input');
+                rateInput.type = 'number';
+                rateInput.className = 'price-input';
+                rateInput.value = item.rate;
+                rateInput.step = '0.01';
+                rateInput.addEventListener('change', function() {
+                    items[index].rate = parseFloat(this.value) || 0;
+                });
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'btn btn-delete';
+                deleteBtn.textContent = '🗑️ Delete';
+                deleteBtn.addEventListener('click', function() {
+                    if (confirm('Remove this item?')) {
+                        items.splice(index, 1);
+                        renderItems();
+                    }
+                });
+                
+                itemRow.appendChild(qtyInput);
+                itemRow.appendChild(nameInput);
+                itemRow.appendChild(rateInput);
+                itemRow.appendChild(deleteBtn);
+                
+                itemsList.appendChild(itemRow);
+            });
+        }
+
+        function addItem() {
+            const qty = parseInt(document.getElementById('newQty').value) || 1;
+            const name = document.getElementById('newName').value.trim();
+            const rate = parseFloat(document.getElementById('newPrice').value) || 0;
+
+            if (name && rate > 0) {
+                items.push({ qty, name, rate });
+                document.getElementById('newName').value = '';
+                document.getElementById('newPrice').value = '';
+                document.getElementById('newQty').value = '1';
+                renderItems();
+                alert('Item added! Click "Save & Update Preview" to see changes in the bill.');
+            } else {
+                alert('Please enter item name and rate');
+            }
+        }
+
+        function getSelectedFormat() {
+            const radios = document.getElementsByName('format');
+            for (let radio of radios) {
+                if (radio.checked) return radio.value;
+            }
+            return 'format1';
+        }
+
+        function formatDateTime() {
+            const dateInput = document.getElementById('billDate').value;
+            const timeInput = document.getElementById('billTime').value;
+            
+            let dateStr = '';
+            let timeStr = '';
+            
+            if (dateInput) {
+                const dateParts = dateInput.split('-');
+                dateStr = `${dateParts[2]}.${dateParts[1]}.${dateParts[0]}`;
+            } else {
+                const now = new Date();
+                dateStr = now.toLocaleDateString('en-IN');
+            }
+            
+            if (timeInput) {
+                const timeParts = timeInput.split(':');
+                let hours = parseInt(timeParts[0]);
+                const minutes = timeParts[1];
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+                hours = hours % 12 || 12;
+                timeStr = `${hours}:${minutes} ${ampm}`;
+            } else {
+                const now = new Date();
+                timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+            }
+            
+            return { date: dateStr, time: timeStr };
+        }
+
+        function renderReceipt() {
+            const format = getSelectedFormat();
+            const restaurantName = document.getElementById('restaurantName').value;
+            const subtitle = document.getElementById('subtitle').value;
+            const address1 = document.getElementById('address1').value;
+            const address2 = document.getElementById('address2').value;
+            const phone = document.getElementById('phone').value;
+            const gstin = document.getElementById('gstin').value;
+            const billNo = document.getElementById('billNo').value;
+            const tableNo = document.getElementById('tableNo').value;
+
+            const { date, time } = formatDateTime();
+            const total = items.reduce((sum, item) => sum + (item.qty * item.rate), 0);
+
+            if (format === 'format1') {
+                renderFormat1(restaurantName, subtitle, address1, address2, billNo, tableNo, date, time, total);
+            } else {
+                renderFormat2(restaurantName, subtitle, address1, address2, billNo, tableNo, date, time, total);
+            }
+        }
+
+        function renderFormat1(restaurantName, subtitle, address1, address2, billNo, tableNo, date, time, total) {
+            const itemsHtml = items.map(item => {
+                const amount = item.qty * item.rate;
+                return `
+                    <div class="table-row">
+                        <div>${item.name}</div>
+                        <div class="text-right">${item.qty}</div>
+                        <div class="text-right">${item.rate}</div>
+                        <div class="text-right">${amount.toFixed(0)}</div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('receiptContent').className = 'receipt-content format1';
+            document.getElementById('receiptContent').innerHTML = `
+                <div class="receipt-header">
+                    <div class="name">${restaurantName}</div>
+                    ${subtitle ? `<div class="subtitle">${subtitle}</div>` : ''}
+                    <div>${address1}</div>
+                    ${address2 ? `<div>${address2}</div>` : ''}
+                </div>
+
+                <div class="receipt-info">
+                    <div class="info-row">
+                        <span>No. ${billNo}</span>
+                        <span>Date: ${date}</span>
+                    </div>
+                    <div class="info-row">
+                        <span>Table No. ${tableNo}</span>
+                        <span>${time}</span>
+                    </div>
+                </div>
+
+                <div class="items-table">
+                    <div class="table-header">
+                        <div>Item</div>
+                        <div class="text-right">Qty<br>Nos</div>
+                        <div class="text-right">Rate<br>Rs.</div>
+                        <div class="text-right">Amount<br>Rs.</div>
+                    </div>
+                    ${itemsHtml}
+                </div>
+
+                <div class="totals">
+                    <div class="grand-total">Total ${total.toFixed(0)}</div>
+                </div>
+
+                <div class="footer">
+                    <div>*** THANK YOU ***</div>
+                    <div style="margin-top: 5px;">VISIT AGAIN</div>
+                </div>
+            `;
+        }
+
+        function renderFormat2(restaurantName, subtitle, address1, address2, billNo, tableNo, date, time, total) {
+            const itemsHtml = items.map(item => {
+                const amount = item.qty * item.rate;
+                return `
+                    <div class="table-row">
+                        <div>${item.name}</div>
+                        <div class="text-right">${item.qty}</div>
+                        <div class="text-right">${item.rate}</div>
+                        <div class="text-right">${amount.toFixed(0)}</div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('receiptContent').className = 'receipt-content format2';
+            document.getElementById('receiptContent').innerHTML = `
+                <div class="receipt-header">
+                    <div class="name">${restaurantName}</div>
+                    <div class="subtitle">${subtitle || 'Restaurant'}</div>
+                    <div style="font-size: 0.9em;">${address1}</div>
+                    ${address2 ? `<div style="font-size: 0.9em;">${address2}</div>` : ''}
+                </div>
+
+                <div class="receipt-info">
+                    <div class="info-row">
+                        <span>Bill No. ${billNo}</span>
+                        <span>Date: ${date}</span>
+                    </div>
+                    <div class="info-row">
+                        <span>Table No. ${tableNo}</span>
+                        <span>${time}</span>
+                    </div>
+                </div>
+
+                <div class="items-table">
+                    <div class="table-header">
+                        <div>Item Name</div>
+                        <div class="text-right">Qty</div>
+                        <div class="text-right">Rate<br>Rs.</div>
+                        <div class="text-right">Amount<br>Rs.</div>
+                    </div>
+                    ${itemsHtml}
+                </div>
+
+                <div class="totals">
+                    <div class="grand-total">Grand Total ${total.toFixed(0)}</div>
+                </div>
+
+                <div class="footer">
+                    <div>THANKS.</div>
+                    <div style="margin-top: 5px;">VISIT AGAIN</div>
+                </div>
+            `;
+        }
+
+        function printBill() {
+            window.print();
+        }
+
+        // Event Listeners
+        document.getElementById('addButton').addEventListener('click', addItem);
+        document.getElementById('saveButton').addEventListener('click', function() {
+            renderReceipt();
+            alert('Bill updated successfully! You can now print.');
+        });
+        document.getElementById('printButton').addEventListener('click', printBill);
+
+        // Initialize
+        setCurrentDateTime();
+        renderItems();
+        renderReceipt();
+    </script>
+</body>
+</html>
